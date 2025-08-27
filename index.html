@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="ar">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>XO — لعبة إكس أو</title>
+  <style>
+    :root {
+      --bg: #0f1724;
+      /* deep navy */
+      --card: #0b1220;
+      --accent1: #7c5cff;
+      --accent2: #00e5a8;
+      --muted: rgba(255, 255, 255, 0.08);
+      --glass: rgba(255, 255, 255, 0.04);
+      --glass-2: rgba(255, 255, 255, 0.02);
+      --size: 72px;
+      --radius: 14px;
+      --glass-border: rgba(255, 255, 255, 0.03);
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(124, 92, 255, 0.12), transparent),
+        radial-gradient(1000px 500px at 90% 90%, rgba(0, 229, 168, 0.06), transparent),
+        var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: #e6eef8;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 980px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+      border-radius: 18px;
+      padding: 28px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+      box-shadow: 0 8px 40px rgba(2, 6, 23, 0.7);
+    }
+
+    header {
+      grid-column: 1/-1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px
+    }
+
+    .title {
+      display: flex;
+      gap: 14px;
+      align-items: center
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      letter-spacing: 1px
+    }
+
+    .title h1 {
+      font-size: 18px;
+      margin: 0
+    }
+
+    .title p {
+      margin: 0;
+      font-size: 13px;
+      color: rgba(230, 238, 248, 0.7)
+    }
+
+    .board-card {
+      background: linear-gradient(180deg, var(--card), rgba(255, 255, 255, 0.02));
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center
+    }
+
+    .board {
+      width: calc(var(--size)*3);
+      height: calc(var(--size)*3);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 12px
+    }
+
+    .cell {
+      width: var(--size);
+      height: var(--size);
+      border-radius: 10px;
+      background: linear-gradient(180deg, var(--glass), var(--glass-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+      transition: transform .12s ease, box-shadow .12s ease
+    }
+
+    .cell:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 30px rgba(2, 6, 23, 0.45)
+    }
+
+    .cell.locked {
+      cursor: default;
+      opacity: 0.95
+    }
+
+    .cell.x {
+      color: var(--accent1);
+      font-weight: 700;
+      text-shadow: 0 6px 18px rgba(124, 92, 255, 0.12)
+    }
+
+    .cell.o {
+      color: var(--accent2);
+      font-weight: 700;
+      text-shadow: 0 6px 18px rgba(0, 229, 168, 0.08)
+    }
+
+    .side {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid var(--glass-border);
+      height: fit-content
+    }
+
+    .status {
+      font-size: 14px;
+      margin-bottom: 12px
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px
+    }
+
+    button.btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: inherit;
+      cursor: pointer
+    }
+
+    button.primary {
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      border: none;
+      color: #021220
+    }
+
+    .score {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 16px
+    }
+
+    .score .item {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      min-width: 80px;
+      text-align: center
+    }
+
+    .small {
+      font-size: 12px;
+      color: rgba(230, 238, 248, 0.6)
+    }
+
+    .footer {
+      grid-column: 1/-1;
+      margin-top: 8px;
+      text-align: center;
+      font-size: 13px;
+      color: rgba(230, 238, 248, 0.55)
+    }
+
+    /* win line */
+    .line {
+      position: absolute;
+      pointer-events: none;
+      mix-blend-mode: screen
+    }
+
+    /* responsive */
+    @media (max-width:880px) {
+      .wrap {
+        grid-template-columns: 1fr;
+        max-width: 540px
+      }
+
+      .side {
+        order: 2
+      }
+    }
+
+    /* subtle confetti container */
+    #confetti {
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 60
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap" role="application" aria-label="لعبة إكس أو">
+    <header>
+      <div class="title">
+        <div class="logo">XO</div>
+        <div>
+          <h1>لعبة إكس أو — رهان بسيط، فرحة كبيرة</h1>
+          <p>لعبتان: X و O. العب مع صديق أو ضد الكمبيوتر. مؤثرات صوتية ورنّات عند الفوز.</p>
+        </div>
+      </div>
+
+    </header>
+
+    <section class="board-card" aria-live="polite">
+      <div style="position:relative;display:inline-block">
+        <div id="board" class="board" role="grid" aria-label="لوح اللعبة"></div>
+        <canvas id="lineCanvas" class="line"></canvas>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+        <div class="small">الدور:</div>
+        <div id="turn" style="font-weight:700">X</div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="status"><strong>حالة اللعبة</strong>
+        <div id="message" class="small">ابدأ الآن — اختر خلية</div>
+      </div>
+
+      <div class="score">
+        <div class="item">
+          <div class="small">X</div>
+          <div id="scoreX" style="font-weight:700">0</div>
+        </div>
+        <div class="item">
+          <div class="small">تعادلات</div>
+          <div id="scoreD" style="font-weight:700">0</div>
+        </div>
+        <div class="item">
+          <div class="small">O</div>
+          <div id="scoreO" style="font-weight:700">0</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="restart">إعادة</button>
+        <button class="primary" id="newGame">جولة جديدة</button>
+      </div>
+
+
+  </div>
+
+
+  </aside>
+
+
+  <div id="confetti"></div>
+  <script>
+    // --- game state ---
+    const boardEl = document.getElementById('board');
+    const turnEl = document.getElementById('turn');
+    const messageEl = document.getElementById('message');
+    const scoreX = document.getElementById('scoreX');
+    const scoreO = document.getElementById('scoreO');
+    const scoreD = document.getElementById('scoreD');
+    const soundStateEl = document.getElementById('soundState');
+
+    let board = Array(9).fill(null);
+    let turn = 'X';
+    let locked = false;
+    let scores = { X: 0, O: 0, D: 0 };
+    let mode = 'local'; // 'ai' or 'local'
+    let soundOn = true;
+
+    // create cells
+    function createBoard() {
+      boardEl.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const c = document.createElement('div');
+        c.className = 'cell';
+        c.dataset.idx = i;
+        c.setAttribute('role', 'button');
+        c.setAttribute('aria-label', `خلية ${i + 1}`);
+        c.addEventListener('click', () => onCell(i));
+        boardEl.appendChild(c);
+      }
+      resizeCanvas();
+    }
+
+    function onCell(i) {
+      if (locked) return;
+      if (board[i]) return;
+      mark(i, turn);
+      if (checkWin(board, turn)) return;
+      if (checkDraw(board)) return;
+      turn = turn === 'X' ? 'O' : 'X';
+      updateUI();
+      if (mode === 'ai' && turn === 'O') {
+        locked = true;
+        setTimeout(() => { aiMove(); locked = false; }, 360);
+      }
+    }
+
+    function mark(i, symbol) {
+      board[i] = symbol;
+      const el = boardEl.querySelector(`[data-idx='${i}']`);
+      el.classList.add(symbol.toLowerCase());
+      el.classList.add('locked');
+      el.textContent = symbol;
+      playTone(symbol === 'X' ? 520 : 340, 0.08);
+      // animate pop
+      el.animate([{ transform: 'scale(.86)' }, { transform: 'scale(1)' }], { duration: 220, easing: 'cubic-bezier(.2,.9,.2,1)' });
+      if (checkWin(board, symbol)) {
+        onWin(symbol);
+      } else if (checkDraw(board)) {
+        onDraw();
+      }
+    }
+
+    function checkWin(b, symbol) {
+      const lines = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+      for (const l of lines) {
+        if (b[l[0]] === symbol && b[l[1]] === symbol && b[l[2]] === symbol) {
+          // drawLine(l);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function checkDraw(b) {
+      return b.every(Boolean);
+    }
+
+    function onWin(symbol) {
+      messageEl.textContent = `فاز ${symbol} — تهانينا!`;
+      scores[symbol]++;
+      updateScores();
+      playWin();
+      locked = true;
+      confettiBurst();
+      setTimeout(() => locked = false, 800);
+    }
+    function onDraw() {
+      messageEl.textContent = 'تعادل — جولة نظيفة.';
+      scores.D++;
+      updateScores();
+      playTone(200, 0.12);
+      locked = true;
+      setTimeout(() => locked = false, 600);
+    }
+
+    function updateScores() { scoreX.textContent = scores.X; scoreO.textContent = scores.O; scoreD.textContent = scores.D; }
+
+    function updateUI() { turnEl.textContent = turn; messageEl.textContent = `دور ${turn}`; }
+
+    // --- restart / new game ---
+    document.getElementById('restart').addEventListener('click', () => {
+      resetBoard(false);
+    });
+    document.getElementById('newGame').addEventListener('click', () => {
+      resetBoard(true);
+    });
+
+    function resetBoard(clearScores = false) {
+      board = Array(9).fill(null);
+      const cells = boardEl.querySelectorAll('.cell');
+      cells.forEach(c => { c.className = 'cell'; c.textContent = ''; c.classList.remove('locked'); });
+      turn = 'X'; locked = false; updateUI(); clearCanvas();
+      if (clearScores) { scores = { X: 0, O: 0, D: 0 }; updateScores(); }
+      messageEl.textContent = 'ابدأ الآن — اختر خلية';
+    }
+
+    // --- keyboard shortcuts 1..9 mapping ---
+    window.addEventListener('keydown', (e) => {
+      if (e.key >= '1' && e.key <= '9') {
+        const idx = parseInt(e.key) - 1; onCell(idx);
+      }
+      if (e.key === 'r') resetBoard(false);
+    });
+
+    // --- drawing win line on canvas ---
+    const lineCanvas = document.getElementById('lineCanvas');
+    const ctx = lineCanvas.getContext('2d');
+    function resizeCanvas() {
+      const rect = boardEl.getBoundingClientRect();
+      lineCanvas.width = rect.width; lineCanvas.height = rect.height;
+      lineCanvas.style.left = rect.left + 'px';
+      lineCanvas.style.top = rect.top + 'px';
+      lineCanvas.style.width = rect.width + 'px';
+      lineCanvas.style.height = rect.height + 'px';
+      lineCanvas.style.position = 'absolute';
+      lineCanvas.style.pointerEvents = 'none';
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function clearCanvas() { ctx.clearRect(0, 0, lineCanvas.width, lineCanvas.height); }
+
+    // function drawLine(line) {
+    //   const cells = [...boardEl.children];
+
+    //   // ناخد أبعاد اللوح نفسه
+    //   const rect = boardEl.getBoundingClientRect();
+
+    //   // cell 0 و cell 2 من مجموعة الفوز
+    //   const cellRect0 = cells[line[0]].getBoundingClientRect();
+    //   const cellRect2 = cells[line[2]].getBoundingClientRect();
+
+    //   // نحسب الإحداثيات بالنسبة للـboard (مو بالنسبة للصفحة كلها)
+    //   const x1 = (cellRect0.left - rect.left) + cellRect0.width / 2;
+    //   const y1 = (cellRect0.top - rect.top) + cellRect0.height / 2;
+    //   const x2 = (cellRect2.left - rect.left) + cellRect2.width / 2;
+    //   const y2 = (cellRect2.top - rect.top) + cellRect2.height / 2;
+
+    //   ctx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+    //   ctx.lineWidth = 10;
+    //   ctx.lineCap = 'round';
+    //   const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+    //   grad.addColorStop(0, 'rgba(124,92,255,0.95)');
+    //   grad.addColorStop(1, 'rgba(0,229,168,0.95)');
+    //   ctx.strokeStyle = grad;
+
+    //   // أنيميشن الرسم
+    //   let t = 0;
+    //   const steps = 20;
+    //   const anim = setInterval(() => {
+    //     t++;
+    //     const px = x1 + (x2 - x1) * (t / steps);
+    //     const py = y1 + (y2 - y1) * (t / steps);
+    //     ctx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+    //     ctx.beginPath();
+    //     ctx.moveTo(x1, y1);
+    //     ctx.lineTo(px, py);
+    //     ctx.stroke();
+    //     if (t >= steps) clearInterval(anim);
+    //   }, 18);
+    // }
+
+    // --- simple AI (minimax lightweight) ---
+    // helper: check win WITHOUT drawing (used for AI simulation)
+    function isWinning(b, symbol) {
+      const lines = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+      for (const l of lines) {
+        if (b[l[0]] === symbol && b[l[1]] === symbol && b[l[2]] === symbol) return true;
+      }
+      return false;
+    }
+
+    function aiMove() {
+      const best = findBestMove(board, 'O');
+      if (best !== null) mark(best, 'O');
+    }
+
+    function findBestMove(b, aiSym) {
+      // check immediate win/block using isWinning (no drawing)
+      for (let i = 0; i < 9; i++) {
+        if (!b[i]) {
+          const copy = b.slice(); copy[i] = aiSym; if (isWinning(copy, aiSym)) return i;
+        }
+      }
+      const human = aiSym === 'O' ? 'X' : 'O';
+      for (let i = 0; i < 9; i++) {
+        if (!b[i]) {
+          const copy = b.slice(); copy[i] = human; if (isWinning(copy, human)) return i; // block
+        }
+      }
+      // center
+      if (!b[4]) return 4;
+      // corners
+      const corners = [0, 2, 6, 8].filter(i => !b[i]); if (corners.length) return corners[Math.floor(Math.random() * corners.length)];
+      // any empty
+      const empties = b.map((v, i) => v ? null : i).filter(x => x !== null); if (empties.length) return empties[0];
+      return null;
+    }
+
+    // --- sound: WebAudio simple tones ---
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContextClass();
+    function playTone(freq, dur = 0.08) {
+      if (!soundOn) return; try {
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type = 'sine'; o.frequency.value = freq; g.gain.value = 0.0001;
+        o.connect(g); g.connect(audioCtx.destination);
+        const now = audioCtx.currentTime; g.gain.exponentialRampToValueAtTime(0.2, now + 0.01); o.start(now);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+        o.stop(now + dur + 0.02);
+      } catch (e) { /* ignore */ }
+    }
+    function playWin() {
+      if (!soundOn) return; // fun little chord
+      playTone(740, 0.12); setTimeout(() => playTone(520, 0.12), 60); setTimeout(() => playTone(980, 0.12), 120);
+    }
+
+    // toggle audio
+
+    // --- confetti ---
+    const confettiRoot = document.getElementById('confetti');
+    function confettiBurst() {
+      if (!document.body.contains(confettiRoot)) return;
+      const n = 26; for (let i = 0; i < n; i++) {
+        const el = document.createElement('div');
+        el.style.position = 'absolute'; el.style.left = (50 + (Math.random() - 0.5) * 60) + '%'; el.style.top = (15 + Math.random() * 10) + '%';
+        el.style.width = '8px'; el.style.height = '14px'; el.style.borderRadius = '2px';
+        el.style.transform = 'translateY(0) rotate(' + Math.random() * 360 + 'deg)';
+        el.style.opacity = '0.95';
+        el.style.background = Math.random() > 0.5 ? 'linear-gradient(180deg, var(--accent1), var(--accent2))' : 'linear-gradient(180deg, var(--accent2), var(--accent1))';
+        el.style.zIndex = 9999; el.style.pointerEvents = 'none';
+        confettiRoot.appendChild(el);
+        const dx = (Math.random() - 0.5) * 300; const dy = 300 + Math.random() * 120; const rot = (Math.random() - 0.5) * 720;
+        el.animate([{ transform: 'translateY(0) rotate(0deg)', opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) rotate(${rot}deg)`, opacity: 0 }], { duration: 1100 + Math.random() * 600, easing: 'cubic-bezier(.2,.9,.2,1)' }).onfinish = () => el.remove();
+      }
+    }
+
+    // --- accessibility / start ---
+    createBoard(); updateUI(); updateScores();
+
+    // resume audio context on first interaction (some browsers require it)
+    function startAudioOnInteract() { if (audioCtx.state === 'suspended') { audioCtx.resume(); } window.removeEventListener('click', startAudioOnInteract); }
+    window.addEventListener('click', startAudioOnInteract);
+
+  </script>
+</body>
+
+</html>
